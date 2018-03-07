@@ -11,21 +11,13 @@ import UIKit
 class ToDoListViewController: UITableViewController {
     
     var itemArray = [Item]()
+    let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        let item1 = Item()
-        item1.title = "Do Homework"
-        itemArray.append(item1)
-        
-        let item2 = Item()
-        item2.title = "Do Homework"
-        itemArray.append(item2)
-        
-        let item3 = Item()
-        item3.title = "Do Homework"
-        itemArray.append(item3)
+    
+        loadData()
     }
     
     
@@ -52,6 +44,7 @@ class ToDoListViewController: UITableViewController {
         let cell = tableView.cellForRow(at: indexPath)!
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         cell.accessoryType = itemArray[indexPath.row].done ? .checkmark : .none
+        saveData()
         
         
         tableView.deselectRow(at: indexPath, animated: true)
@@ -70,6 +63,7 @@ class ToDoListViewController: UITableViewController {
             let newItem = Item()
             newItem.title = textField.text!
             self.itemArray.append(newItem)
+            self.saveData()
             self.tableView.reloadData()
         }
         
@@ -85,5 +79,28 @@ class ToDoListViewController: UITableViewController {
     
     
     //MARK: - Model Manipulation Methods
+    func saveData() {
+        var storedData = [[String:Bool]]()
+        for item in itemArray {
+            storedData.append([item.title : item.done])
+        }
+        print(storedData)
+        defaults.set(storedData, forKey: "itemArray")
+    }
+    
+    func loadData() {
+        if let storedData = defaults.array(forKey: "itemArray") as? [[String:Bool]] {
+            for data in storedData {
+                for (key, value) in data {
+                    let item = Item()
+                    item.title = key
+                    item.done = value
+                    itemArray.append(item)
+                    print(itemArray)
+                }
+            }
+        }
+
+    }
 }
 
