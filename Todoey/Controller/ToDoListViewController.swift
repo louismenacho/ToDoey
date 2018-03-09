@@ -11,12 +11,11 @@ import UIKit
 class ToDoListViewController: UITableViewController {
     
     var itemArray = [Item]()
-    let defaults = UserDefaults.standard
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
 
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-    
         loadData()
     }
     
@@ -80,27 +79,24 @@ class ToDoListViewController: UITableViewController {
     
     //MARK: - Model Manipulation Methods
     func saveData() {
-        var storedData = [[String:Bool]]()
-        for item in itemArray {
-            storedData.append([item.title : item.done])
+        let encoder = PropertyListEncoder()
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        } catch {
+            print(error)
         }
-        print(storedData)
-        defaults.set(storedData, forKey: "itemArray")
     }
     
     func loadData() {
-        if let storedData = defaults.array(forKey: "itemArray") as? [[String:Bool]] {
-            for data in storedData {
-                for (key, value) in data {
-                    let item = Item()
-                    item.title = key
-                    item.done = value
-                    itemArray.append(item)
-                    print(itemArray)
-                }
+        if let data = try? Data(contentsOf: dataFilePath!) {
+            do {
+                let decoder = PropertyListDecoder()
+                itemArray = try decoder.decode([Item].self, from: data)
+            } catch {
+                print(error)
             }
         }
-
     }
 }
 
